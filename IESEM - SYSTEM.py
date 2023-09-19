@@ -99,23 +99,23 @@ class GeneratePDF():
             # CAIXA DE TEXTO
             messagebox.showinfo("Aviso!! - Comprovante", msg)
         else:
-            def _get_next_cursor():
-                global CURRENT_CURSOR_POS
+            def obter_proximo_cursor():
+                global ATUAL_CURSOR_POS
                 try:
-                    CURRENT_CURSOR_POS += 1
-                    return CURSOR_POSITIONS[CURRENT_CURSOR_POS]
+                    ATUAL_CURSOR_POS += 1
+                    return CURSOR_POSICAO[ATUAL_CURSOR_POS]
                 except:
-                    CURRENT_CURSOR_POS = 0
-                    return CURSOR_POSITIONS[CURRENT_CURSOR_POS]
+                    ATUAL_CURSOR_POS = 0
+                    return CURSOR_POSICAO[ATUAL_CURSOR_POS]
                 
-            def spinning_cursor_with_label(label_text):
-                sys.stdout.write('\r[{}]\t{}'.format(_get_next_cursor(), label_text))
+            def cursor_gira_label(label_text):
+                sys.stdout.write('\r[{}]\t{}'.format(obter_proximo_cursor(), label_text))
                 sys.stdout.flush()
 
 
             for i in range(101):
                 time.sleep(0.1)
-                spinning_cursor_with_label(label_text="Editando PDF {}%...".format(i))
+                cursor_gira_label(label_text="Editando PDF {}%...".format(i))
             print("")
             print("\nATENÇÃO!! => Quando o comprovante for gerado no navegador")
             print("Copie um arquivo do mesmo para um certo diretório e renomeie da seguinte forma:")
@@ -245,8 +245,8 @@ class Function():
         self.cursor.execute(""" DELETE FROM aluno WHERE rowid NOT IN (
                     SELECT MIN(rowid)
                     FROM aluno
-                    GROUP BY name, forma_de_pagamento, mes);""")
-        print("Identificando dados duplicados...")
+                    GROUP BY name, mes);""")
+        print("\nIdentificando dados duplicados...\n")
         self.conn.commit()
        
     # OK
@@ -271,12 +271,13 @@ class Function():
             self.cursor.execute(""" DELETE FROM alunos WHERE rowid NOT IN (
                         SELECT MIN(rowid)
                         FROM alunos
-                        GROUP BY name);""");print("Identificando dados duplicados...")
-            self.conn.commit();print("\nNOVO CADASTRO:\n {}\n {}\n {}".format(self.name, self.cell, self.turma))
+                        GROUP BY name);""");print("\n Identificando dados duplicados...")
+            self.conn.commit();print("\nNOVO CADASTRO:\n {}\n {}\n {}\n".format(self.name, self.cell, self.turma))
             # REMOVER DUPLICADOS
             self.select_lista2()
-            self.desconecta_bd()
 
+            self.desconecta_bd()
+            self.Delete2()
     # ANALISAR
     def add_situation_aluno(self):
         # importando as variáveis
@@ -303,6 +304,7 @@ class Function():
                 if self.name == "":
                     print("\nNão foi possível conectar ao banco: requisição incompleta")
                     msg = "Aluno não cadastrado!"
+                    
                     # CAIXA DE TEXTO
                     messagebox.showinfo("Aviso!! - Analise de aluno de cliente", msg)
                     self.Delete1()
@@ -310,7 +312,7 @@ class Function():
                     self.variable()
                     self.conecta_bd()
                     
-                    self.cursor.execute(""" UPDATE aluno SET pago = (?) WHERE mes = (?)""", (self.pago, self.data))# Por se tratar de uma tupla
+                    self.cursor.execute(""" UPDATE aluno SET forma_de_pagamento = (?), pago = (?) WHERE mes = (?)""", (self.pay, self.pago, self.data))# Por se tratar de uma tupla
                     self.conn.commit();print("Atualização...")
                     self.desconecta_bd()
                     self.select_lista1()
@@ -319,7 +321,7 @@ class Function():
                     self.conecta_bd()#Referenciar qual aluno
                     self.cursor.execute(""" INSERT INTO aluno (name, forma_de_pagamento, mes, pago) 
                         VALUES (?, ?, ?, ?) """, (self.name, self.pay, self.data, self.pago))
-                    self.conn.commit();print("\nPAGAMENTO ATUAL DO MÊS ONDE : \nAluno: {} \nValor: {} \nData: {}".format(self.name, self.pago, self.data))
+                    self.conn.commit();print("\nPAGAMENTO ATUAL DO MÊS ONDE : \nAluno: {} \nValor: {} \nData: {}\n".format(self.name, self.pago, self.data))
                     self.remove_duplicate()
                     
                     self.desconecta_bd()
@@ -465,7 +467,7 @@ class Function():
         else: 
             self.conecta_bd()
             self.cursor.execute(""" DELETE FROM aluno WHERE name = ? AND mes = ? """, (self.search_name, self.data,))
-            self.conn.commit();print("\nPagamento do mês cancelado:\nAluno: {} \nData: {}".format(self.search_name, self.data))
+            self.conn.commit();print("\nPagamento do mês cancelado:\nAluno: {} \nData: {}\n".format(self.search_name, self.data))
             self.desconecta_bd()
             # Limpar
             self.Delete1()
@@ -479,7 +481,7 @@ class Function():
         self.variable()
         self.conecta_bd()
         self.cursor.execute(""" DELETE FROM alunos WHERE name = (?)""", (self.name,))
-        self.conn.commit();print("\nCadastro deletado: {}".format(self.name))
+        self.conn.commit();print("\nCadastro deletado: {}\n".format(self.name))
         self.desconecta_bd()
         # Limpar
         self.Delete2()
@@ -490,14 +492,15 @@ class Function():
     def altera_aluno2(self):
         self.variable()
         self.conecta_bd()
-        self.cursor.execute(""" UPDATE alunos SET name = (?), cell = (?), turma = (?)""", (self.name, self.cell, self.turma,))# Por se tratar de uma tupla
-        self.conn.commit();print("\nCadastro Atualizado: \nAluno: {} \nCelular: {} \nTurma: {}".format(self.name, self.cell, self.turma))
+        self.cursor.execute(""" UPDATE alunos SET name = (?), cell = (?), turma = (?) WHERE name = (?)""", (self.name, self.cell, self.turma, self.name))# Por se tratar de uma tupla
+        self.conn.commit();print("\nCadastro Atualizado: \nAluno: {} \nCelular: {} \nTurma: {}\n \n".format(self.name, self.cell, self.turma))
+        print("OBS.: O aplicativo segue o Art. 299 da constuição sobre falsidade ideológica, neste caso o sistema detecta qualquer alteração de nome")
         self.desconecta_bd()
         self.conecta_bd()
         self.cursor.execute(""" DELETE FROM alunos WHERE rowid NOT IN (
                     SELECT MIN(rowid)
                     FROM alunos
-                    GROUP BY name);""");print("Identificando dados duplicados...")
+                    GROUP BY name);""");print("\nIdentificando dados duplicados...\n")
         self.conn.commit()
         self.desconecta_bd()
         self.select_lista2()
