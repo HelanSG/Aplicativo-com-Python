@@ -99,23 +99,23 @@ class GeneratePDF():
             # CAIXA DE TEXTO
             messagebox.showinfo("Aviso!! - Comprovante", msg)
         else:
-            def obter_proximo_cursor():
-                global ATUAL_CURSOR_POS
+            def _get_next_cursor():
+                global CURRENT_CURSOR_POS
                 try:
-                    ATUAL_CURSOR_POS += 1
-                    return CURSOR_POSICAO[ATUAL_CURSOR_POS]
+                    CURRENT_CURSOR_POS += 1
+                    return CURSOR_POSITIONS[CURRENT_CURSOR_POS]
                 except:
-                    ATUAL_CURSOR_POS = 0
-                    return CURSOR_POSICAO[ATUAL_CURSOR_POS]
+                    CURRENT_CURSOR_POS = 0
+                    return CURSOR_POSITIONS[CURRENT_CURSOR_POS]
                 
-            def cursor_gira_label(label_text):
-                sys.stdout.write('\r[{}]\t{}'.format(obter_proximo_cursor(), label_text))
+            def spinning_cursor_with_label(label_text):
+                sys.stdout.write('\r[{}]\t{}'.format(_get_next_cursor(), label_text))
                 sys.stdout.flush()
 
 
             for i in range(101):
                 time.sleep(0.1)
-                cursor_gira_label(label_text="Editando PDF {}%...".format(i))
+                spinning_cursor_with_label(label_text="Editando PDF {}%...".format(i))
             print("")
             print("\nATENÇÃO!! => Quando o comprovante for gerado no navegador")
             print("Copie um arquivo do mesmo para um certo diretório e renomeie da seguinte forma:")
